@@ -24,9 +24,9 @@ const io = socketIo(server, {
 });
 
 // Configuration
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const MEDIA_SERVER_URL =
-  process.env.MEDIA_SERVER_URL || "http://localhost:5000";
+  process.env.MEDIA_SERVER_URL || "http://localhost:4000";
 const MEDIA_SERVER_API_KEY =
   process.env.MEDIA_SERVER_API_KEY || "your-secret-key";
 
@@ -47,26 +47,20 @@ const verifyMediaServer = (req, res, next) => {
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
-  // Optional: Register client with a custom clientId
-  socket.on("register", (data) => {
-    const { clientId } = data;
-    if (clientId) {
-      clientSocketMap.set(clientId, socket);
-      console.log(`Registered clientId ${clientId} with socket ${socket.id}`);
-    }
-  });
+  clientSocketMap.set(socket.id, socket);
+  console.log(`Registered clientId ${socket.id} with socket ${socket.id}`);
 
   // Handle SDP Offer from client
   socket.on("sdp-offer", async (data) => {
     try {
-      console.log(`Received SDP Offer from ${socket.id}`);
+      console.log(`Received SDP Offer from ${socket.id} it: ${data.sdp}`);
 
       // Forward the SDP offer to the media server
       await axios.post(
-        `${MEDIA_SERVER_URL}/process-sdp`,
+        `${MEDIA_SERVER_URL}/api/mediaserver`,
         {
           sdp: data.sdp,
-          clientId: socket.id, // Use socket.id as clientId
+          clientId: socket.id,
         },
         {
           headers: {
